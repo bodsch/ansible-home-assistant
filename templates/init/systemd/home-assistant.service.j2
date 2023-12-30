@@ -1,0 +1,29 @@
+# {{ ansible_managed | comment }}
+
+[Unit]
+Description           = Home Assistant
+After                 = network.target
+StartLimitIntervalSec = 300
+StartLimitBurst       = 5
+
+[Service]
+Type                  = simple
+EnvironmentFile       = {{ home_assistant_defaults_directory }}/home-assistant
+
+User                  = {{ home_assistant_user.owner }}
+# Group                 = {{ home_assistant_user.group }}
+# WorkingDirectory      = {{ home_assistant_user.home }}
+
+ExecStart             = {{ home_assistant_user.home }}/bin/hass $OPTIONS
+
+SyslogIdentifier      = home-assistant
+Restart               = always
+RestartSec            = 1m
+
+{% if home_assistant.restart is defined and home_assistant.restart %}
+{# restart every ... #}
+RuntimeMaxSec         = {{ home_assistant.max_runtime | default('7d') }}
+{% endif %}
+
+[Install]
+WantedBy              = multi-user.target

@@ -1,0 +1,9 @@
+---
+
+- name: start and enable service
+  ansible.builtin.service:
+    name: home-assistant
+    state: started
+    enabled: true
+
+...

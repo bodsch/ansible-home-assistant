@@ -1,0 +1,7 @@
+---
+
+- name: merge home-assistant configuration between defaults and custom
+  ansible.builtin.set_fact:
+    home_assistant_configuration: "{{ home_assistant_defaults_configuration | combine(home_assistant_configuration, recursive=True) }}"
+
+...

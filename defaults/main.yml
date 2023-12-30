@@ -1,0 +1,16 @@
+---
+
+home_assistant_user:
+  owner: home-assistant
+  group: home-assistant
+  home: /opt/home-assistant
+
+home_assistant_port: 8123
+
+home_assistant_service_config: {}
+
+home_assistant_configuration: {}
+home_assistant_automation: {}
+home_assistant_scenes: {}
+home_assistant_scripts: {}
+home_assistant_secrets: {}

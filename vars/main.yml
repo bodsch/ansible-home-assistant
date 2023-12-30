@@ -1,0 +1,56 @@
+---
+
+home_assistant_requirements:
+  - python3-dev
+  - python3-pip
+  - python3-virtualenv
+  - gcc
+  - ffmpeg
+
+home_assistant_python_requirements:
+  - name: appdirs
+  - name: packaging
+  - name: colorlog
+  - name: python-dateutil
+
+home_assistant_defaults_directory: /etc/default
+
+home_assistant_defaults_service_config:
+  config_directory: "{{ home_assistant_user.home }}"    # Directory that contains the Home Assistant configuration
+  recovery_mode: ""                                     # Start Home Assistant in recovery mode
+  debug: ""                                             #
+  open_ui: ""                                           #
+  skip_pip: ""                                          #
+  skip_pip_packages: []                                 #
+  verbose: ""                                           #
+  log_rotate_days: "10"                                 #
+  log_file: ""                                          #
+  log_no_color: true                                    #
+  ignore_os_check: ""                                   #
+                                                        #
+home_assistant_defaults_configuration:
+  default_config: ""
+  frontend:
+    themes: "!include_dir_merge_named themes"
+  automation: "!include automations.yaml"
+  script: "!include scripts.yaml"
+  scene: "!include scenes.yaml"
+
+home_assistant_defaults_automation: {}
+home_assistant_defaults_scenes: {}
+home_assistant_defaults_scripts: {}
+home_assistant_defaults_secrets: {}
+
+# ----------------------------------------------------------------------------------------
+
+go_arch_map:
+  x86_64: 'amd64'
+  aarch64: 'arm64'
+  armv7l: 'armv7'
+  armv6l: 'armv6'
+
+system_architecture: "{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+
+systemd_lib_directory: /lib/systemd/system
+
+...

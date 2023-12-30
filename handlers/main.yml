@@ -1,0 +1,21 @@
+---
+
+- name: daemon-reload
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+    force: true
+  when:
+    - ansible_service_mgr | lower == "systemd"
+
+- name: restart home-assistant
+  become: true
+  ansible.builtin.service:
+    name: home-assistant
+    state: restarted
+
+- name: reload home-assistant
+  become: true
+  ansible.builtin.service:
+    name: home-assistant
+    state: reloaded

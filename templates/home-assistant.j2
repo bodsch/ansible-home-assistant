@@ -1,0 +1,67 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+
+OPTIONS=" \
+{% if home_assistant_service_config.config_directory is defined and
+      home_assistant_service_config.config_directory | string | length > 0 %}
+  --config {{ home_assistant_service_config.config_directory }} \
+{% endif %}
+{% if home_assistant_service_config.recovery_mode is defined and
+      home_assistant_service_config.recovery_mode | string | length > 0 and
+      home_assistant_service_config.recovery_mode %}
+  --recovery-mode \
+{% endif %}
+{% if home_assistant_service_config.debug is defined and
+      home_assistant_service_config.debug | string | length > 0 and
+      home_assistant_service_config.debug %}
+  --debug \
+{% endif %}
+{% if home_assistant_service_config.verbose is defined and
+      home_assistant_service_config.verbose | string | length > 0 and
+      home_assistant_service_config.verbose %}
+  --verbose \
+{% endif %}
+{% if home_assistant_service_config.skip_pip is defined and
+      home_assistant_service_config.skip_pip | string | length > 0 and
+      home_assistant_service_config.skip_pip %}
+  --skip-pip \
+{% endif %}
+{% if home_assistant_service_config.log_rotate_days is defined and
+      home_assistant_service_config.log_rotate_days | string | length > 0 %}
+  --log-rotate-days {{ home_assistant_service_config.log_rotate_days }} \
+{% endif %}
+{% if home_assistant_service_config.log_file is defined and
+      home_assistant_service_config.log_file | string | length > 0 %}
+  --log-file {{ home_assistant_service_config.log_file }} \
+{% endif %}
+{% if home_assistant_service_config.log_no_color is defined and
+      home_assistant_service_config.log_no_color | string | length > 0 and
+      home_assistant_service_config.log_no_color %}
+  --log-no-color \
+{% endif %}
+{% if home_assistant_service_config.ignore_os_check is defined and
+      home_assistant_service_config.ignore_os_check | string | length > 0 and
+      home_assistant_service_config.ignore_os_check %}
+  --ignore-os-check \
+{% endif %}
+"
+
+{#
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  -c path_to_config_dir, --config path_to_config_dir
+                        Directory that contains the Home Assistant configuration
+  --recovery-mode       Start Home Assistant in recovery mode
+  --debug               Start Home Assistant in debug mode
+  --open-ui             Open the webinterface in a browser
+  --skip-pip            Skips pip install of required packages on startup
+  --skip-pip-packages package_names
+                        Skip pip install of specific packages on startup
+  -v, --verbose         Enable verbose logging to file.
+  --log-rotate-days LOG_ROTATE_DAYS
+                        Enables daily log rotation and keeps up to the specified days
+  --log-file LOG_FILE   Log file to write to. If not set, CONFIG/home-assistant.log is used
+  --log-no-color        Disable color logs
+  --script ...          Run one of the embedded scripts
+  --ignore-os-check     Skips validation of operating system
+#}

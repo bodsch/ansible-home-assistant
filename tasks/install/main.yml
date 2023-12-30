@@ -1,0 +1,13 @@
+---
+
+- name: prepare for install
+  ansible.builtin.include_tasks: install/prepare.yml
+
+- name: python support
+  ansible.builtin.include_tasks: install/python-support.yml
+
+- name: check installed
+  ansible.builtin.include_tasks: check_installed.yml
+
+- name: install home-assistant
+  ansible.builtin.include_tasks: install/install.yml

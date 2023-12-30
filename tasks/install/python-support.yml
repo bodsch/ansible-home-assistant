@@ -1,0 +1,76 @@
+---
+
+- name: python support
+  tags:
+    - home_assistant_install
+  when:
+    - home_assistant_python_requirements is defined
+    - home_assistant_python_requirements | length > 0
+  block:
+    - name: create pip requirements file
+      bodsch.core.pip_requirements:
+        name: home-assistant
+        requirements: "{{ home_assistant_python_requirements }}"
+      register: pip_requirements
+
+    - name: fail if pip not installed
+      ansible.builtin.fail:
+        msg: python pip is not installed
+      when:
+        - not pip_requirements.pip.present
+
+    - name: install home-assistant python packages  # noqa no-handler
+      # become: true
+      remote_user: "{{ home_assistant_user.owner }}"
+      ansible.builtin.pip:
+        requirements: "{{ pip_requirements.requirements_file }}"
+        state: present
+        virtualenv: "{{ home_assistant_user.home }}"
+        extra_args: "{{ home_assistant_python_extra_args | default([]) | bodsch.core.python_extra_args(python_version=ansible_python.version,break_system_packages=False) | default(omit) }}"
+      register: pip_install
+      ignore_errors: true
+      # no_log: true
+      when:
+        - pip_requirements.requirements_file is defined
+        - pip_requirements.changed
+
+    - name: first run is failed, try with build
+      when:
+        - pip_install is defined
+        - pip_install.failed is defined
+        - pip_install.failed
+        - home_assistant_python_build_packages | default([]) | count > 0
+      block:
+        - name: install build essentials
+          ansible.builtin.package:
+            name: "{{ home_assistant_python_build_packages }}"
+            state: present
+
+        - name: ensure python bindings for home-assistant packages 2nd
+          # become: true
+          remote_user: "{{ home_assistant_user.owner }}"
+          ansible.builtin.pip:
+            requirements: "{{ pip_requirements.requirements_file }}"
+            state: present
+            virtualenv: "{{ home_assistant_user.home }}"
+            extra_args: "{{ home_assistant_python_extra_args | default([]) | bodsch.core.python_extra_args(python_version=ansible_python.version,break_system_packages=False) | default(omit) }}"
+
+        - name: uninstall build essentials
+          ansible.builtin.package:
+            name: "{{ home_assistant_python_build_packages }}"
+            state: absent
+
+    - name: do facts module to get latest information
+      ansible.builtin.setup:
+  rescue:
+    - name: remove python requirements file
+      bodsch.core.pip_requirements:
+        name: home-assistant
+        requirements: "{{ home_assistant_python_requirements }}"
+        state: absent
+
+    - name: exit with fail
+      ansible.builtin.fail:
+        msg: Sorry, but a serious error occurred when installing the required Python packages.
+
+...

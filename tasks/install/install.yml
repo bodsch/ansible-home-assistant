@@ -1,0 +1,81 @@
+---
+
+
+- name: install defined version of home-assistant
+  # become: true
+  remote_user: "{{ home_assistant_user.owner }}"
+  ansible.builtin.pip:
+    name: homeassistant
+    version: "{{ home_assistant_version }}"
+    virtualenv: "{{ home_assistant_user.home }}"
+    extra_args: "{{ home_assistant_python_extra_args | default([]) | bodsch.core.python_extra_args(python_version=ansible_python.version,break_system_packages=False) | default(omit) }}"
+  when:
+    - home_assistant_version is defined
+    - home_assistant_version | default('') | string | length > 0
+
+- name: install latest version of home-assistant
+  # become: true
+  remote_user: "{{ home_assistant_user.owner }}"
+  ansible.builtin.pip:
+    name: homeassistant
+    virtualenv: "{{ home_assistant_user.home }}"
+    extra_args: "{{ home_assistant_python_extra_args | default(['--upgrade']) | bodsch.core.python_extra_args(python_version=ansible_python.version,break_system_packages=False) | default(omit) }}"
+  when:
+    - home_assistant_version is undefined
+    - home_assistant_version | default('') | string | length == 0
+
+- name: merge home-assistant configuration between defaults and custom
+  ansible.builtin.set_fact:
+    home_assistant_service_config: "{{ home_assistant_defaults_service_config | combine(home_assistant_service_config, recursive=True) }}"
+
+- name: systemd
+  when:
+    - ansible_service_mgr | lower == "systemd"
+  block:
+    - name: create home-assistant run configuration
+      ansible.builtin.template:
+        src: "home-assistant.j2"
+        dest: "{{ home_assistant_defaults_directory }}/home-assistant"
+        force: true
+        owner: root
+        group: "{{ home_assistant_user.group }}"
+        mode: 0640
+      notify:
+        - reload home-assistant
+
+    - name: create systemd service unit
+      ansible.builtin.template:
+        src: "init/systemd/home-assistant.service.j2"
+        dest: "{{ systemd_lib_directory }}/home-assistant.service"
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - daemon-reload
+        - restart home-assistant
+
+- name: openrc
+  when:
+    - ansible_service_mgr | lower == "openrc"
+  block:
+    - name: create openrc service configuration
+      ansible.builtin.template:
+        src: "init/openrc/conf.d/home-assistant.j2"
+        dest: "/etc/conf.d/home-assistant"
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: create openrc init configuration
+      ansible.builtin.template:
+        src: "init/openrc/init.d/home-assistant.j2"
+        dest: "/etc/init.d/home-assistant"
+        owner: root
+        group: root
+        mode: 0750
+
+# - name: create custom fact file
+#   bodsch.core.facts:
+#     name: home-assistant
+#     facts:
+#       version: "{{ home_assistant_version }}"
