@@ -1,0 +1,31 @@
+---
+
+galaxy_info:
+  role_name: home_assistant
+  namespace: bodsch
+
+  author: Bodo Schulz
+  description: ansible role to install and configure home assistant
+
+  license: Apache
+  min_ansible_version: "2.9"
+
+  platforms:
+    - name: ArchLinux
+    - name: Debian
+      versions:
+        # 9
+        - etch
+        # 10
+        - buster
+        - bullseye
+        - bookwork
+
+  galaxy_tags:
+    - system
+    - automation
+    - home_automation
+
+dependencies: []
+
+...
