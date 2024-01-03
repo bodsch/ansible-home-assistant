@@ -14,3 +14,8 @@ home_assistant_automation: {}
 home_assistant_scenes: {}
 home_assistant_scripts: {}
 home_assistant_secrets: {}
+
+home_assistant_groups_groups:
+  - dialout
+
+...

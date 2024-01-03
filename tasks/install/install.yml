@@ -8,7 +8,9 @@
     name: homeassistant
     version: "{{ home_assistant_version }}"
     virtualenv: "{{ home_assistant_user.home }}"
-    extra_args: "{{ home_assistant_python_extra_args | default([]) | bodsch.core.python_extra_args(python_version=ansible_python.version,break_system_packages=False) | default(omit) }}"
+    extra_args: "{{ home_assistant_python_extra_args | default([]) |
+                      bodsch.core.python_extra_args(python_version=ansible_python.version, break_system_packages=False) | default(omit)
+                 }}"
   when:
     - home_assistant_version is defined
     - home_assistant_version | default('') | string | length > 0
@@ -19,7 +21,9 @@
   ansible.builtin.pip:
     name: homeassistant
     virtualenv: "{{ home_assistant_user.home }}"
-    extra_args: "{{ home_assistant_python_extra_args | default(['--upgrade']) | bodsch.core.python_extra_args(python_version=ansible_python.version,break_system_packages=False) | default(omit) }}"
+    extra_args: "{{ home_assistant_python_extra_args | default(['--upgrade']) |
+                      bodsch.core.python_extra_args(python_version=ansible_python.version, break_system_packages=False) | default(omit)
+                }}"
   when:
     - home_assistant_version is undefined
     - home_assistant_version | default('') | string | length == 0

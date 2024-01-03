@@ -13,18 +13,11 @@ galaxy_info:
   platforms:
     - name: ArchLinux
     - name: Debian
-      versions:
-        # 9
-        - etch
-        # 10
-        - buster
-        - bullseye
-        - bookwork
 
   galaxy_tags:
     - system
     - automation
-    - home_automation
+    - homeautomation
 
 dependencies: []
 

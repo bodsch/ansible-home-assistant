@@ -4,4 +4,13 @@
   ansible.builtin.set_fact:
     home_assistant_configuration: "{{ home_assistant_defaults_configuration | combine(home_assistant_configuration, recursive=True) }}"
 
+- name: create home-assistant configuration
+  ansible.builtin.template:
+    src: "home-assistant/configuration.yaml.j2"
+    dest: "{{ home_assistant_service_config.config_directory }}/configuration.yaml"
+    group: "{{ home_assistant_user.group }}"
+    mode: 0644
+  notify:
+    - restart home-assistant
+
 ...
