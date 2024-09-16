@@ -1,48 +1,21 @@
-
+#jinja2: trim_blocks: True, lstrip_blocks: True
+---
+# {{ ansible_managed }}
+#
 # Loads default set of integrations. Do not remove.
 # default_config:
 
-assist_pipeline:
-backup:
-bluetooth:
-config:
-conversation:
-counter:
-dhcp:
-energy:
-#frontend:
-hardware:
-history:
-homeassistant_alerts:
-image_upload:
-input_boolean:
-input_button:
-input_datetime:
-input_number:
-input_select:
-input_text:
-logbook:
-logger:
-map:
-my:
-network:
-person:
-schedule:
-#scene:
-#script:
-stream:
-sun:
-system_health:
-tag:
-timer:
-usb:
-webhook:
-zone:
-
-# Load frontend themes from the themes folder
-frontend:
-  themes: !include_dir_merge_named themes
-
-automation: !include automations.yaml
-script: !include scripts.yaml
-scene: !include scenes.yaml
+{% if home_assistant_configuration | count > 0 %}
+  {% for k, v in home_assistant_configuration.items() %}
+    {% if v | bodsch.core.type == "str" %}
+      {% if v | string | length > 0 %}
+{{ k }}: {{ v }}
+      {% else %}
+# {{ k }}:
+      {% endif %}
+    {% else %}
+## unsupported config type: {{  v | bodsch.core.type }}
+## {{ k }}: {{ v }}
+    {% endif %}
+  {% endfor %}
+{% endif %}

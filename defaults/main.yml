@@ -11,6 +11,7 @@ home_assistant_service_config: {}
 
 home_assistant_configuration: {}
 home_assistant_automation: {}
+home_assistant_logger: {}
 home_assistant_scenes: {}
 home_assistant_scripts: {}
 home_assistant_secrets: {}

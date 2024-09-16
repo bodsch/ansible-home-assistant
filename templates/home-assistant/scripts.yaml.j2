@@ -1,1 +1,4 @@
- 
+---
+{% if home_assistant_scripts | count > 0 %}
+{{ home_assistant_scripts | to_nice_yaml(indent=0, sort_keys=False) | indent(width=0, first=False, blank=False) }}
+{% endif %}

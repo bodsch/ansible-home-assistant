@@ -29,14 +29,72 @@ home_assistant_defaults_service_config:
   ignore_os_check: ""                                   #
                                                         #
 home_assistant_defaults_configuration:
-  default_config: ""
-  frontend:
-    themes: "!include_dir_merge_named themes"
+  # default_config: ""
+  assist_pipeline: ""
+  backup: ""
+  bluetooth: ""
+  config: ""
+  conversation: ""
+  counter: ""
+  dhcp: ""
+  energy: ""
+  hardware: ""
+  history: ""
+  homeassistant_alerts: ""
+  image_upload: ""
+  input_boolean: ""
+  input_button: ""
+  input_datetime: ""
+  input_number: ""
+  input_select: ""
+  input_text: ""
+  logbook: ""
+  logger: "!include logger.yaml"
+  map: ""
+  my: ""
+  network: ""
+  person: ""
+  schedule: ""
+  stream: ""
+  sun: ""
+  system_health: ""
+  tag: ""
+  timer: ""
+  usb: ""
+  webhook: ""
+  zone: ""
+  frontend: "!include frontend.yaml"
+  #  themes: "!include_dir_merge_named themes"
   automation: "!include automations.yaml"
   script: "!include scripts.yaml"
   scene: "!include scenes.yaml"
 
 home_assistant_defaults_automation: {}
+home_assistant_defaults_logger:
+  default: warning
+  logs:
+    homeassistant.core: warning
+    homeassistant.components.mqtt: warning
+    homeassistant.components.python_script: warning
+    homeassistant.components.zha: warning
+    aiohttp: error
+    bellows.zigbee.application: warning
+    bellows.ezsp: warning
+    zigpy: warning
+    zigpy_deconz.zigbee.application: warning
+    zigpy_deconz.api: warning
+    zigpy_xbee.zigbee.application: warning
+    zigpy_xbee.api: warning
+    zigpy_zigate: warning
+    zigpy_znp: warning
+    zhaquirks: warning
+  filters:
+    custom_components.my_integration:
+      - "HTTP 429" # Filter all HTTP 429 errors
+      - "Request to .*unreliable.com.* Timed Out"
+    homeassistant.components.nws:
+      - "^Error handling request$"
+
 home_assistant_defaults_scenes: {}
 home_assistant_defaults_scripts: {}
 home_assistant_defaults_secrets: {}

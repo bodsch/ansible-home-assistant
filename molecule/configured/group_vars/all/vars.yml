@@ -1,0 +1,14 @@
+---
+
+home_assistant_configuration:
+  frontend: "!include frontend.yaml"
+  automation: "!include automations.yaml"
+  script: "!include scripts.yaml"
+  scene: "!include scenes.yaml"
+
+home_assistant_automation: {}
+home_assistant_scenes: {}
+home_assistant_scripts: {}
+home_assistant_secrets:
+  some_password: welcome
+...

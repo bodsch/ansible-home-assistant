@@ -27,7 +27,7 @@
         path: "{{ home_assistant_user.home }}"
         owner: "{{ home_assistant_user.owner }}"
         group: "{{ home_assistant_user.group }}"
-        mode: 02775
+        mode: "02775"
 
     - name: create storage directory
       ansible.builtin.file:
@@ -35,7 +35,7 @@
         path: "{{ home_assistant_user.home }}/.storage"
         owner: "{{ home_assistant_user.owner }}"
         group: "{{ home_assistant_user.group }}"
-        mode: 02775
+        mode: "02775"
 
 - name: add user {{ home_assistant_user.owner }} to groups
   ansible.builtin.user:

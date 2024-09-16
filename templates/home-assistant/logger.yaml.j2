@@ -1,0 +1,5 @@
+---
+{# https://www.home-assistant.io/integrations/logger #}
+{% if home_assistant_logger | count > 0 %}
+{{ home_assistant_logger | to_nice_yaml(indent=0, sort_keys=False) | indent(width=0, first=False, blank=False) }}
+{% endif %}

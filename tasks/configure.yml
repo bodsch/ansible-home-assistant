@@ -3,13 +3,36 @@
 - name: merge home-assistant configuration between defaults and custom
   ansible.builtin.set_fact:
     home_assistant_configuration: "{{ home_assistant_defaults_configuration | combine(home_assistant_configuration, recursive=True) }}"
+    home_assistant_automation: "{{ home_assistant_defaults_automation | combine(home_assistant_automation, recursive=True) }}"
+    home_assistant_logger: "{{ home_assistant_defaults_logger | combine(home_assistant_logger, recursive=True) }}"
+    home_assistant_scenes: "{{ home_assistant_defaults_scenes | combine(home_assistant_scenes, recursive=True) }}"
+    home_assistant_scripts: "{{ home_assistant_defaults_scripts | combine(home_assistant_scripts, recursive=True) }}"
+    home_assistant_secrets: "{{ home_assistant_defaults_secrets | combine(home_assistant_secrets, recursive=True) }}"
 
-- name: create home-assistant configuration
+- name: create home-assistant configuration files
+  ansible.builtin.template:
+    src: "home-assistant/{{ item }}.yaml.j2"
+    dest: "{{ home_assistant_service_config.config_directory }}/{{ item }}.yaml"
+    owner: "{{ home_assistant_user.owner }}"
+    group: "{{ home_assistant_user.group }}"
+    mode: "0644"
+  loop:
+    - secrets
+    - scripts
+    - scenes
+    - logger
+    - automations
+    - frontend
+  notify:
+    - restart home-assistant
+
+- name: create home-assistant main configuration
   ansible.builtin.template:
     src: "home-assistant/configuration.yaml.j2"
     dest: "{{ home_assistant_service_config.config_directory }}/configuration.yaml"
+    owner: "{{ home_assistant_user.owner }}"
     group: "{{ home_assistant_user.group }}"
-    mode: 0644
+    mode: "0644"
   notify:
     - restart home-assistant
 

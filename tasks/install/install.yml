@@ -1,6 +1,5 @@
 ---
 
-
 - name: install defined version of home-assistant
   # become: true
   remote_user: "{{ home_assistant_user.owner }}"
@@ -28,6 +27,14 @@
     - home_assistant_version is undefined
     - home_assistant_version | default('') | string | length == 0
 
+- name: create custom_components directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ home_assistant_user.home }}/custom_components"
+    owner: "{{ home_assistant_user.owner }}"
+    group: "{{ home_assistant_user.group }}"
+    mode: "02775"
+
 - name: merge home-assistant configuration between defaults and custom
   ansible.builtin.set_fact:
     home_assistant_service_config: "{{ home_assistant_defaults_service_config | combine(home_assistant_service_config, recursive=True) }}"
@@ -36,6 +43,17 @@
   when:
     - ansible_service_mgr | lower == "systemd"
   block:
+    - name: create systemd service unit
+      ansible.builtin.template:
+        src: "init/systemd/home-assistant.service.j2"
+        dest: "{{ systemd_lib_directory }}/home-assistant.service"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - daemon-reload
+        - restart home-assistant
+
     - name: create home-assistant run configuration
       ansible.builtin.template:
         src: "home-assistant.j2"
@@ -43,19 +61,8 @@
         force: true
         owner: root
         group: "{{ home_assistant_user.group }}"
-        mode: 0640
+        mode: "0640"
       notify:
-        - reload home-assistant
-
-    - name: create systemd service unit
-      ansible.builtin.template:
-        src: "init/systemd/home-assistant.service.j2"
-        dest: "{{ systemd_lib_directory }}/home-assistant.service"
-        owner: root
-        group: root
-        mode: 0644
-      notify:
-        - daemon-reload
         - restart home-assistant
 
 - name: openrc
@@ -68,7 +75,7 @@
         dest: "/etc/conf.d/home-assistant"
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
 
     - name: create openrc init configuration
       ansible.builtin.template:
@@ -76,7 +83,7 @@
         dest: "/etc/init.d/home-assistant"
         owner: root
         group: root
-        mode: 0750
+        mode: "0750"
 
 # - name: create custom fact file
 #   bodsch.core.facts:
