@@ -69,7 +69,8 @@ home_assistant_defaults_configuration:
   script: "!include scripts.yaml"
   scene: "!include scenes.yaml"
 
-home_assistant_defaults_automation: {}
+home_assistant_defaults_automation: []
+
 home_assistant_defaults_logger:
   default: warning
   logs:

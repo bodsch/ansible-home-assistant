@@ -10,7 +10,7 @@ home_assistant_port: 8123
 home_assistant_service_config: {}
 
 home_assistant_configuration: {}
-home_assistant_automation: {}
+home_assistant_automation: []
 home_assistant_logger: {}
 home_assistant_scenes: {}
 home_assistant_scripts: {}
