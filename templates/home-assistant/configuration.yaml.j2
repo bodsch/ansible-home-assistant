@@ -5,6 +5,16 @@
 # Loads default set of integrations. Do not remove.
 # default_config:
 
+{% set _location = home_assistant_onboarding.location | default({}) %}
+{% if _location | length > 0 %}
+homeassistant:
+  {% for _key in ['name', 'latitude', 'longitude', 'elevation', 'unit_system', 'time_zone', 'currency', 'country', 'language'] %}
+    {% if _location[_key] is defined and _location[_key] | string | length > 0 %}
+  {{ _key }}: {{ _location[_key] }}
+    {% endif %}
+  {% endfor %}
+
+{% endif %}
 {% if home_assistant_configuration | count > 0 %}
   {% for k, v in home_assistant_configuration.items() %}
     {% if v | bodsch.core.type in ["str", "string"] %}

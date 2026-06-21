@@ -1,0 +1,80 @@
+---
+
+- name: headless onboarding
+  when:
+    - home_assistant_onboarding.enabled | default(false) | bool
+  block:
+    - name: check for an existing auth store
+      ansible.builtin.stat:
+        path: "{{ home_assistant_user.home }}/.storage/auth"
+      register: _ha_auth_store
+
+    - name: seed onboarding (only when Home Assistant has not been onboarded yet)
+      when:
+        - not _ha_auth_store.stat.exists
+      block:
+        - name: ensure an owner password is configured
+          ansible.builtin.assert:
+            that:
+              - home_assistant_onboarding.owner.password | default('') | string | length > 0
+            fail_msg: >-
+              home_assistant_onboarding.owner.password is required to seed the
+              onboarding - set it (ideally via ansible-vault).
+            quiet: true
+
+        - name: generate onboarding storage and secrets
+          ansible.builtin.script:
+            cmd: generate_onboarding_secrets.py
+            executable: "{{ home_assistant_user.home }}/bin/python"
+          environment:
+            HA_PASSWORD: "{{ home_assistant_onboarding.owner.password }}"
+            HA_USERNAME: "{{ home_assistant_onboarding.owner.username }}"
+            HA_NAME: "{{ home_assistant_onboarding.owner.name | default('Admin') }}"
+            HA_MAKE_TOKEN: "{{ '1' if (home_assistant_onboarding.access_token.enabled | default(false) | bool) else '0' }}"
+            HA_TOKEN_NAME: "{{ home_assistant_onboarding.access_token.name | default('ansible') }}"
+            HA_PERSON: "{{ '1' if (home_assistant_onboarding.person.enabled | default(false) | bool) else '0' }}"
+            HA_VERSION: "{{ home_assistant_version | default('') }}"
+            HA_SCHEMA: "{{ home_assistant_onboarding.schema | default({}) | to_json }}"
+          register: _ha_seed_raw
+          no_log: true
+
+        - name: parse generated storage
+          ansible.builtin.set_fact:
+            _ha_seed: "{{ _ha_seed_raw.stdout | from_json }}"
+          no_log: true
+
+        - name: write Home Assistant storage files
+          ansible.builtin.copy:
+            dest: "{{ home_assistant_user.home }}/.storage/{{ item.key }}"
+            content: "{{ item.value | to_nice_json }}"
+            owner: "{{ home_assistant_user.owner }}"
+            group: "{{ home_assistant_user.group }}"
+            mode: "0600"
+          loop: "{{ _ha_seed.files | dict2items }}"
+          loop_control:
+            label: "{{ item.key }}"
+          no_log: true
+          notify:
+            - restart home-assistant
+
+        - name: store the long-lived access token
+          when:
+            - home_assistant_onboarding.access_token.enabled | default(false) | bool
+            - _ha_seed.access_token | default('') | length > 0
+          ansible.builtin.copy:
+            dest: "{{ home_assistant_onboarding.access_token.dest }}"
+            content: "{{ _ha_seed.access_token }}"
+            owner: "{{ home_assistant_user.owner }}"
+            group: "{{ home_assistant_user.group }}"
+            mode: "0600"
+          no_log: true
+
+        - name: report long-lived access token location
+          ansible.builtin.debug:
+            msg: >-
+              A long-lived access token was generated and stored at
+              {{ home_assistant_onboarding.access_token.dest }} (mode 0600).
+          when:
+            - home_assistant_onboarding.access_token.enabled | default(false) | bool
+
+...

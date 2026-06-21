@@ -30,39 +30,11 @@
                           bodsch.core.python_extra_args(python_version=ansible_facts.python.version, break_system_packages=False) | default(omit)
                      }}"
       register: pip_install
-      ignore_errors: true
-      # no_log: true
+      notify:
+        - restart home-assistant
       when:
         - pip_requirements.requirements_file is defined
         - pip_requirements.changed
-
-    - name: first run is failed, try with build
-      when:
-        - pip_install is defined
-        - pip_install.failed is defined
-        - pip_install.failed
-        - home_assistant_python_build_packages | default([]) | count > 0
-      block:
-        - name: install build essentials
-          ansible.builtin.package:
-            name: "{{ home_assistant_python_build_packages }}"
-            state: present
-
-        - name: ensure python bindings for home-assistant packages 2nd
-          # become: true
-          remote_user: "{{ home_assistant_user.owner }}"
-          ansible.builtin.pip:
-            requirements: "{{ pip_requirements.requirements_file }}"
-            state: present
-            virtualenv: "{{ home_assistant_user.home }}"
-            extra_args: "{{ home_assistant_python_extra_args | default([]) |
-                              bodsch.core.python_extra_args(python_version=ansible_facts.python.version, break_system_packages=False) | default(omit)
-                         }}"
-
-        - name: uninstall build essentials
-          ansible.builtin.package:
-            name: "{{ home_assistant_python_build_packages }}"
-            state: absent
 
     - name: do facts module to get latest information
       ansible.builtin.setup:
