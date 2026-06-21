@@ -6,7 +6,7 @@ home_assistant_configuration:
   script: "!include scripts.yaml"
   scene: "!include scenes.yaml"
 
-home_assistant_automation: {}
+home_assistant_automation: []
 home_assistant_scenes: {}
 home_assistant_scripts: {}
 home_assistant_secrets:

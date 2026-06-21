@@ -1,5 +1,7 @@
 ---
 
+home_assistant_version: 2026.2.3
+
 home_assistant_user:
   owner: home-assistant
   group: home-assistant

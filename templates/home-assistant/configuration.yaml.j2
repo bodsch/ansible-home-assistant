@@ -7,7 +7,7 @@
 
 {% if home_assistant_configuration | count > 0 %}
   {% for k, v in home_assistant_configuration.items() %}
-    {% if v | bodsch.core.type == "str" %}
+    {% if v | bodsch.core.type in ["str", "string"] %}
       {% if v | string | length > 0 %}
 {{ k }}: {{ v }}
       {% else %}

@@ -27,7 +27,7 @@
         state: present
         virtualenv: "{{ home_assistant_user.home }}"
         extra_args: "{{ home_assistant_python_extra_args | default([]) |
-                          bodsch.core.python_extra_args(python_version=ansible_python.version, break_system_packages=False) | default(omit)
+                          bodsch.core.python_extra_args(python_version=ansible_facts.python.version, break_system_packages=False) | default(omit)
                      }}"
       register: pip_install
       ignore_errors: true
@@ -56,7 +56,7 @@
             state: present
             virtualenv: "{{ home_assistant_user.home }}"
             extra_args: "{{ home_assistant_python_extra_args | default([]) |
-                              bodsch.core.python_extra_args(python_version=ansible_python.version, break_system_packages=False) | default(omit)
+                              bodsch.core.python_extra_args(python_version=ansible_facts.python.version, break_system_packages=False) | default(omit)
                          }}"
 
         - name: uninstall build essentials
