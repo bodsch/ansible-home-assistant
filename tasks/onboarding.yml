@@ -62,7 +62,7 @@
             - home_assistant_onboarding.access_token.enabled | default(false) | bool
             - _ha_seed.access_token | default('') | length > 0
           ansible.builtin.copy:
-            dest: "{{ home_assistant_onboarding.access_token.dest }}"
+            dest: "{{ home_assistant_onboarding.access_token.dest | default(home_assistant_user.home ~ '/.ansible_access_token') }}"
             content: "{{ _ha_seed.access_token }}"
             owner: "{{ home_assistant_user.owner }}"
             group: "{{ home_assistant_user.group }}"
@@ -73,7 +73,7 @@
           ansible.builtin.debug:
             msg: >-
               A long-lived access token was generated and stored at
-              {{ home_assistant_onboarding.access_token.dest }} (mode 0600).
+              {{ home_assistant_onboarding.access_token.dest | default(home_assistant_user.home ~ '/.ansible_access_token') }} (mode 0600).
           when:
             - home_assistant_onboarding.access_token.enabled | default(false) | bool
 

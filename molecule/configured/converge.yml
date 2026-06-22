@@ -10,3 +10,9 @@
 
   roles:
     - role: ansible-home-assistant
+
+  post_tasks:
+    - name: wait for home-assistant to listen on its port
+      ansible.builtin.wait_for:
+        port: "{{ home_assistant_port | default(8123) }}"
+        timeout: 600
