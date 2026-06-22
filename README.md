@@ -123,6 +123,63 @@ would be emitted as a quoted string and HA would not resolve it). Either put the
 real value in directly (vault it with `ansible-vault`), or keep secrets in the
 UI. Open an issue if you want first-class `!secret` support.
 
+## HACS (Home Assistant Community Store)
+
+HACS lets you install community integrations, themes and **frontend cards**
+(needed for nicer dashboards). Enable it with:
+
+```yaml
+home_assistant_hacs:
+  enabled: true
+  version: latest          # or pin a release tag, e.g. "2.0.5"
+```
+
+The role downloads the HACS release archive into `custom_components/hacs`; Home
+Assistant installs HACS's Python dependencies on the next restart.
+
+> **One manual step (by design):** HACS activation uses a GitHub device login,
+> which cannot be automated headlessly. After the restart, add the HACS
+> integration once in the UI (**Settings → Devices & Services → Add integration
+> → HACS**) and enter the shown code at <https://github.com/login/device>. HACS
+> updates itself from then on.
+
+## Dashboards (YAML mode)
+
+`home_assistant_lovelace` puts Lovelace into **YAML mode** so the role owns the
+dashboard. The listed frontend cards are downloaded into `www/community/<name>/`
+and registered as resources (served from `/local/community/...`), so the
+dashboard renders without installing the cards through the HACS UI first.
+
+```yaml
+home_assistant_lovelace:
+  enabled: true
+  mode: yaml
+  resources:
+    - name: mushroom
+      file: mushroom.js
+      url: "https://github.com/piitaya/lovelace-mushroom/releases/latest/download/mushroom.js"
+  dashboard:
+    title: Home
+    views:
+      - title: Übersicht
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.living_room
+```
+
+A complete Mushroom overview lives in
+[`examples/dashboard-mushroom.yml`](examples/dashboard-mushroom.yml).
+
+Notes:
+
+- In YAML mode the built-in dashboard is no longer editable from the UI — the
+  role's `ui-lovelace.yaml` is the source of truth. You can still create
+  additional UI-managed dashboards alongside it.
+- Cards downloaded by the role live under `/local/community/` and are
+  independent of HACS — don't also install the same card via HACS to avoid two
+  copies. HACS remains available for everything else.
+- After updating a card, browsers may cache the old JS; hard-refresh once.
+
 ## Headless onboarding
 
 Normally Home Assistant requires you to click through an onboarding wizard in

@@ -31,5 +31,7 @@ home_assistant_requirements:
   - bluez
   # timezone data
   - tzdata
+  # extracting the HACS release archive
+  - unzip
 
 ...

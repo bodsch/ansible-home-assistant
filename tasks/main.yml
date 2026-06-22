@@ -9,6 +9,12 @@
 - name: configure
   ansible.builtin.import_tasks: configure.yml
 
+- name: hacs
+  ansible.builtin.import_tasks: hacs.yml
+
+- name: dashboard
+  ansible.builtin.import_tasks: dashboard.yml
+
 - name: onboarding
   ansible.builtin.import_tasks: onboarding.yml
 

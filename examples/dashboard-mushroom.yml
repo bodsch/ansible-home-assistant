@@ -1,0 +1,87 @@
+---
+
+# A Mushroom-based overview dashboard for this role. Copy into your
+# group_vars/host_vars. Entities marked "# adapt:" must match your setup.
+#
+# The role downloads the mushroom + auto-entities cards into www/community/
+# and registers them as Lovelace resources automatically - no HACS UI step
+# needed for these two cards.
+
+home_assistant_lovelace:
+  enabled: true
+  mode: yaml
+  resources:
+    - name: mushroom
+      file: mushroom.js
+      url: "https://github.com/piitaya/lovelace-mushroom/releases/latest/download/mushroom.js"
+    - name: auto-entities
+      file: auto-entities.js
+      url: "https://github.com/thomasloven/lovelace-auto-entities/releases/latest/download/auto-entities.js"
+
+  dashboard:
+    title: Home
+    views:
+      - title: Übersicht
+        path: home
+        icon: mdi:home
+        type: sections
+        sections:
+
+          # Quick status chips at the top.
+          - type: grid
+            cards:
+              - type: custom:mushroom-chips-card
+                chips:
+                  - type: weather
+                    entity: weather.forecast_home    # adapt
+                  - type: entity
+                    entity: sensor.sun_next_dawn      # adapt
+                    icon: mdi:weather-sunset-up
+
+          # People.
+          - type: grid
+            cards:
+              - type: custom:mushroom-title-card
+                title: Personen
+              - type: custom:mushroom-person-card
+                entity: person.admin                 # adapt
+
+          # All lights, auto-populated as mushroom light cards.
+          - type: grid
+            cards:
+              - type: custom:mushroom-title-card
+                title: Lichter
+              - type: custom:auto-entities
+                card:
+                  type: grid
+                  columns: 2
+                  square: false
+                card_param: cards
+                sort:
+                  method: friendly_name
+                filter:
+                  include:
+                    - domain: light
+                      options:
+                        type: custom:mushroom-light-card
+                        show_brightness_control: true
+                        show_color_temp_control: true
+
+          # Climate.
+          - type: grid
+            cards:
+              - type: custom:mushroom-title-card
+                title: Klima
+              - type: custom:auto-entities
+                card:
+                  type: grid
+                  columns: 2
+                  square: false
+                card_param: cards
+                filter:
+                  include:
+                    - domain: climate
+                      options:
+                        type: custom:mushroom-climate-card
+
+...

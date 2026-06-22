@@ -15,6 +15,18 @@ homeassistant:
   {% endfor %}
 
 {% endif %}
+{% if home_assistant_lovelace.enabled | default(false) %}
+lovelace:
+  mode: {{ home_assistant_lovelace.mode | default('yaml') }}
+  {% if home_assistant_lovelace.resources | default([]) | length > 0 %}
+  resources:
+    {% for _r in home_assistant_lovelace.resources %}
+    - url: /local/community/{{ _r.name }}/{{ _r.file }}
+      type: {{ _r.type | default('module') }}
+    {% endfor %}
+  {% endif %}
+
+{% endif %}
 {% if home_assistant_configuration | count > 0 %}
   {% for k, v in home_assistant_configuration.items() %}
     {% if v | bodsch.core.type in ["str", "string"] %}

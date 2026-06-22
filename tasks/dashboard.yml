@@ -1,0 +1,61 @@
+---
+
+- name: Lovelace dashboard (YAML mode)
+  when:
+    - home_assistant_lovelace.enabled | default(false) | bool
+  block:
+    - name: create www/community directory
+      ansible.builtin.file:
+        path: "{{ home_assistant_service_config.config_directory }}/www/community"
+        state: directory
+        owner: "{{ home_assistant_user.owner }}"
+        group: "{{ home_assistant_user.group }}"
+        mode: "02775"
+
+    - name: check installed frontend cards
+      ansible.builtin.stat:
+        path: "{{ home_assistant_service_config.config_directory }}/www/community/{{ item.name }}/{{ item.file }}"
+      loop: "{{ home_assistant_lovelace.resources | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: _lovelace_cards
+
+    - name: create frontend card directories
+      ansible.builtin.file:
+        path: "{{ home_assistant_service_config.config_directory }}/www/community/{{ item.item.name }}"
+        state: directory
+        owner: "{{ home_assistant_user.owner }}"
+        group: "{{ home_assistant_user.group }}"
+        mode: "02775"
+      loop: "{{ _lovelace_cards.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+      when:
+        - not item.stat.exists
+
+    - name: download frontend cards
+      ansible.builtin.get_url:
+        url: "{{ item.item.url }}"
+        dest: "{{ home_assistant_service_config.config_directory }}/www/community/{{ item.item.name }}/{{ item.item.file }}"
+        owner: "{{ home_assistant_user.owner }}"
+        group: "{{ home_assistant_user.group }}"
+        mode: "0644"
+      loop: "{{ _lovelace_cards.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+      when:
+        - not item.stat.exists
+      notify:
+        - restart home-assistant
+
+    - name: render ui-lovelace.yaml
+      ansible.builtin.template:
+        src: "home-assistant/ui-lovelace.yaml.j2"
+        dest: "{{ home_assistant_service_config.config_directory }}/ui-lovelace.yaml"
+        owner: "{{ home_assistant_user.owner }}"
+        group: "{{ home_assistant_user.group }}"
+        mode: "0644"
+      notify:
+        - restart home-assistant
+
+...

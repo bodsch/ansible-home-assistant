@@ -22,6 +22,40 @@ home_assistant_groups:
   - dialout
 
 # ----------------------------------------------------------------------------------------
+# HACS - Home Assistant Community Store
+#
+# This installs the HACS custom component into custom_components/hacs. HACS'
+# own Python dependencies are installed by Home Assistant on the next restart.
+#
+# NOTE: activation cannot be automated - after the restart you have to add the
+# HACS integration once in the UI (Settings -> Devices & Services -> Add
+# integration -> HACS) and complete the GitHub device login. That step is
+# interactive by design.
+home_assistant_hacs:
+  enabled: false
+  version: latest          # "latest" or a release tag, e.g. "2.0.5"
+
+# ----------------------------------------------------------------------------------------
+# Lovelace dashboard (YAML mode)
+#
+# Switches Lovelace to YAML mode so the role owns the dashboard. The named
+# frontend cards are downloaded into www/community/<name>/ and registered as
+# resources (served from /local/community/...), so the dashboard works without
+# manually installing the cards through the HACS UI. Provide your dashboard
+# views under `dashboard` (see examples/dashboard-mushroom.yml).
+home_assistant_lovelace:
+  enabled: false
+  mode: yaml
+  resources:
+    - name: mushroom
+      file: mushroom.js
+      url: "https://github.com/piitaya/lovelace-mushroom/releases/latest/download/mushroom.js"
+    - name: auto-entities
+      file: auto-entities.js
+      url: "https://github.com/thomasloven/lovelace-auto-entities/releases/latest/download/auto-entities.js"
+  dashboard: {}
+
+# ----------------------------------------------------------------------------------------
 # Headless onboarding
 #
 # Pre-seeds Home Assistant's .storage so the WebUI onboarding wizard is skipped.
