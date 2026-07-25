@@ -1,0 +1,36 @@
+---
+
+- name: HACS - Home Assistant Community Store
+  when:
+    - home_assistant_hacs.enabled | default(false) | bool
+  block:
+    - name: create HACS custom_components directory
+      ansible.builtin.file:
+        path: "{{ home_assistant_user.home }}/custom_components/hacs"
+        state: directory
+        owner: "{{ home_assistant_user.owner }}"
+        group: "{{ home_assistant_user.group }}"
+        mode: "02775"
+
+    - name: resolve HACS download url
+      ansible.builtin.set_fact:
+        _hacs_url: >-
+          {{
+            'https://github.com/hacs/integration/releases/latest/download/hacs.zip'
+            if (home_assistant_hacs.version | default('latest')) == 'latest'
+            else 'https://github.com/hacs/integration/releases/download/'
+                 ~ home_assistant_hacs.version ~ '/hacs.zip'
+          }}
+
+    - name: download and extract HACS
+      ansible.builtin.unarchive:
+        src: "{{ _hacs_url }}"
+        dest: "{{ home_assistant_user.home }}/custom_components/hacs"
+        remote_src: true
+        owner: "{{ home_assistant_user.owner }}"
+        group: "{{ home_assistant_user.group }}"
+        creates: "{{ home_assistant_user.home }}/custom_components/hacs/manifest.json"
+      notify:
+        - restart home-assistant
+
+...

@@ -1,5 +1,7 @@
 ---
 
+home_assistant_version: 2026.2.3
+
 home_assistant_user:
   owner: home-assistant
   group: home-assistant
@@ -12,11 +14,85 @@ home_assistant_service_config: {}
 home_assistant_configuration: {}
 home_assistant_automation: []
 home_assistant_logger: {}
-home_assistant_scenes: {}
+home_assistant_scenes: []
 home_assistant_scripts: {}
 home_assistant_secrets: {}
 
-home_assistant_groups_groups:
+home_assistant_groups:
   - dialout
+
+# ----------------------------------------------------------------------------------------
+# HACS - Home Assistant Community Store
+#
+# This installs the HACS custom component into custom_components/hacs. HACS'
+# own Python dependencies are installed by Home Assistant on the next restart.
+#
+# NOTE: activation cannot be automated - after the restart you have to add the
+# HACS integration once in the UI (Settings -> Devices & Services -> Add
+# integration -> HACS) and complete the GitHub device login. That step is
+# interactive by design.
+home_assistant_hacs:
+  enabled: false
+  version: latest          # "latest" or a release tag, e.g. "2.0.5"
+
+# ----------------------------------------------------------------------------------------
+# Lovelace dashboard (YAML mode)
+#
+# Switches Lovelace to YAML mode so the role owns the dashboard. The named
+# frontend cards are downloaded into www/community/<name>/ and registered as
+# resources (served from /local/community/...), so the dashboard works without
+# manually installing the cards through the HACS UI. Provide your dashboard
+# views under `dashboard` (see examples/dashboard-mushroom.yml).
+home_assistant_lovelace:
+  enabled: false
+  mode: yaml
+  resources:
+    - name: mushroom
+      file: mushroom.js
+      url: "https://github.com/piitaya/lovelace-mushroom/releases/latest/download/mushroom.js"
+    - name: auto-entities
+      file: auto-entities.js
+      url: "https://github.com/thomasloven/lovelace-auto-entities/releases/latest/download/auto-entities.js"
+  dashboard: {}
+
+# ----------------------------------------------------------------------------------------
+# Headless onboarding
+#
+# Pre-seeds Home Assistant's .storage so the WebUI onboarding wizard is skipped.
+# Only takes effect on a FRESH instance: if .storage/auth already exists the
+# whole step is skipped and no live state is touched.
+home_assistant_onboarding:
+  enabled: false
+  owner:
+    name: "Admin"
+    username: "admin"
+    password: ""              # REQUIRED when enabled - set via ansible-vault
+    language: "en"
+  # Optional long-lived access token for later REST API automation. When enabled
+  # the generated bearer token is written to `dest` (mode 0600) on the target.
+  access_token:
+    enabled: false
+    name: "ansible"
+    dest: "{{ home_assistant_user.home }}/.ansible_access_token"
+  # Seeding .storage/person is intentionally OFF: that store carries active
+  # schema migrations, and Home Assistant creates a person for the owner by
+  # itself on first start. Only enable this if you also pin person.minor_version
+  # under `schema` below to the exact value your HA release uses - otherwise
+  # HA's migration crashes (KeyError: 'persons').
+  person:
+    enabled: false
+  # Location / units rendered into the `homeassistant:` block of
+  # configuration.yaml. Leave empty to keep HA defaults. Supported keys:
+  # name, latitude, longitude, elevation, unit_system, time_zone, currency,
+  # country, language.
+  location: {}
+  # Storage schema versions. VERIFY these against an instance you onboarded
+  # manually (`cat /opt/home-assistant/.storage/<file>`) and override if your
+  # Home Assistant release uses different values.
+  schema:
+    auth: {version: 1, minor_version: 1}
+    auth_provider: {version: 1, minor_version: 1}
+    onboarding: {version: 4, minor_version: 1}
+    person: {version: 1, minor_version: 2}
 
 ...

@@ -1,0 +1,196 @@
+---
+
+# Curated, ready-to-use Home Assistant automations, scripts and scenes for this
+# role. Copy what you need into your group_vars/host_vars.
+#
+#   - Notifications use the generic `notify.notify` service. If you run the HA
+#     companion app, swap it for your `notify.mobile_app_<device>` service.
+#   - Lines marked "# adapt:" reference entities you must change to your own.
+#   - Some of these are nicer with helpers (input_boolean, ...). Enable them in
+#     home_assistant_configuration, e.g. `input_boolean: ""`.
+
+# ---------------------------------------------------------------------------
+# Automations  ->  home_assistant_automation  (a LIST)
+# ---------------------------------------------------------------------------
+home_assistant_automation:
+
+  # Ping you when Home Assistant has (re)started - handy while provisioning.
+  - id: "notify_ha_started"
+    alias: "Notify when Home Assistant starts"
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - service: notify.notify
+        data:
+          title: "Home Assistant"
+          message: "System started at {{ now().strftime('%H:%M') }}."
+
+  # Daily low-battery report across ALL battery sensors. Device-agnostic;
+  # `float(101)` makes non-numeric states (unknown/unavailable) sort out.
+  - id: "low_battery_report"
+    alias: "Low battery report"
+    mode: single
+    trigger:
+      - platform: time
+        at: "09:00:00"
+    condition:
+      - condition: template
+        value_template: >-
+          {{ states.sensor | selectattr('attributes.device_class', 'eq', 'battery')
+             | map(attribute='state') | map('float', 101) | select('lt', 20) | list | count > 0 }}
+    action:
+      - service: notify.notify
+        data:
+          title: "Low batteries"
+          message: >-
+            {% set ns = namespace(items=[]) %}
+            {% for s in states.sensor | selectattr('attributes.device_class', 'eq', 'battery') %}
+              {% if s.state | float(101) < 20 %}
+                {% set ns.items = ns.items + [s.name ~ ' (' ~ s.state ~ '%)'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') }}
+
+  # Daily notification when any update.* entity has an update available.
+  - id: "notify_updates_available"
+    alias: "Notify when updates are available"
+    mode: single
+    trigger:
+      - platform: time
+        at: "10:00:00"
+    condition:
+      - condition: template
+        value_template: "{{ states.update | selectattr('state', 'eq', 'on') | list | count > 0 }}"
+    action:
+      - service: notify.notify
+        data:
+          title: "Updates available"
+          message: >-
+            {{ states.update | selectattr('state', 'eq', 'on')
+               | map(attribute='name') | join(', ') }}
+
+  # Motion light with timeout. Dual-trigger pattern: on motion -> light on;
+  # 5 min after motion clears -> light off.
+  - id: "motion_light_hallway"
+    alias: "Hallway light on motion"
+    mode: queued
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.hallway_motion   # adapt
+        to: "on"
+      - platform: state
+        entity_id: binary_sensor.hallway_motion   # adapt
+        to: "off"
+        for: "00:05:00"
+    action:
+      - choose:
+          - conditions: "{{ trigger.to_state.state == 'on' }}"
+            sequence:
+              - service: light.turn_on
+                target:
+                  entity_id: light.hallway         # adapt
+        default:
+          - service: light.turn_off
+            target:
+              entity_id: light.hallway             # adapt
+
+  # Turn everything off when the last person leaves home.
+  - id: "all_off_when_away"
+    alias: "Turn everything off when everyone leaves"
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: zone.home
+        below: 1
+    action:
+      - service: light.turn_off
+        target:
+          entity_id: all
+      - service: media_player.turn_off
+        target:
+          entity_id: all
+
+# ---------------------------------------------------------------------------
+# Scripts  ->  home_assistant_scripts  (a MAPPING of script_id -> definition)
+# ---------------------------------------------------------------------------
+home_assistant_scripts:
+
+  # "Good night" - call from a button, automation or the dashboard.
+  good_night:
+    alias: "Good night"
+    mode: single
+    sequence:
+      - service: light.turn_off
+        target:
+          entity_id: all
+      - service: media_player.turn_off
+        target:
+          entity_id: all
+      # - service: lock.lock          # adapt / uncomment if you have locks
+      #   target:
+      #     entity_id: all
+
+  # Reusable notifier with parameters - call with message/title fields.
+  notify_all:
+    alias: "Notify all devices"
+    mode: parallel
+    fields:
+      message:
+        description: "The message body"
+        required: true
+      title:
+        description: "Optional title"
+        required: false
+    sequence:
+      - service: notify.notify
+        data:
+          title: "{{ title | default('Home Assistant') }}"
+          message: "{{ message }}"
+
+  # Flash a light three times as a visual alert.
+  flash_lights:
+    alias: "Flash lights"
+    mode: restart
+    sequence:
+      - repeat:
+          count: 3
+          sequence:
+            - service: light.turn_on
+              target:
+                entity_id: light.living_room       # adapt
+              data:
+                flash: short
+            - delay: "00:00:01"
+
+# ---------------------------------------------------------------------------
+# Scenes  ->  home_assistant_scenes  (a LIST)
+# ---------------------------------------------------------------------------
+home_assistant_scenes:
+
+  - id: "scene_bright"
+    name: "Bright"
+    entities:
+      light.living_room:                           # adapt
+        state: "on"
+        brightness: 255
+
+  - id: "scene_relax"
+    name: "Relax"
+    entities:
+      light.living_room:                           # adapt
+        state: "on"
+        brightness: 60
+        color_temp_kelvin: 2200
+
+  - id: "scene_movie"
+    name: "Movie"
+    entities:
+      light.living_room:                           # adapt
+        state: "on"
+        brightness: 30
+      media_player.tv:                             # adapt
+        state: "on"
+
+...

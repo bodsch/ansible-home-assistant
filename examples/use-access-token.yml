@@ -1,0 +1,67 @@
+---
+
+# Example: consume the long-lived access token created by the
+# `home_assistant_onboarding` feature and talk to the Home Assistant REST API.
+#
+# Prerequisites:
+#   - the home_assistant role has run with
+#       home_assistant_onboarding.enabled: true
+#       home_assistant_onboarding.access_token.enabled: true
+#   - Home Assistant is up and listening on home_assistant_port
+#
+# Run this AFTER the role, against the same host:
+#   ansible-playbook -i inventory examples/use-access-token.yml
+
+- name: use the Home Assistant access token
+  hosts: home_assistant
+  become: true            # the token file is mode 0600, owned by the HA user
+  gather_facts: false
+
+  vars:
+    home_assistant_url: "http://127.0.0.1:8123"
+    home_assistant_token_file: /opt/home-assistant/.ansible_access_token
+
+  tasks:
+    - name: read the generated long-lived access token
+      ansible.builtin.slurp:
+        src: "{{ home_assistant_token_file }}"
+      register: _ha_token_raw
+      no_log: true
+
+    - name: expose the token as a fact
+      ansible.builtin.set_fact:
+        home_assistant_token: "{{ _ha_token_raw.content | b64decode | trim }}"
+      no_log: true
+
+    - name: verify the API is reachable and the token is accepted
+      ansible.builtin.uri:
+        url: "{{ home_assistant_url }}/api/"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ home_assistant_token }}"
+          Content-Type: "application/json"
+        status_code: 200
+      register: _ha_api
+      no_log: true
+
+    - name: show the API greeting
+      ansible.builtin.debug:
+        msg: "{{ _ha_api.json.message }}"   # -> "API running."
+
+    # ---------------------------------------------------------------------
+    # Beyond verification: anything the REST API offers is now scriptable,
+    # e.g. calling a service. Set `when: true` and adjust the entity_id.
+    - name: example - call a service (disabled by default)
+      ansible.builtin.uri:
+        url: "{{ home_assistant_url }}/api/services/light/turn_on"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ home_assistant_token }}"
+        body_format: json
+        body:
+          entity_id: light.example
+        status_code: [200, 201]
+      no_log: true
+      when: false
+
+...

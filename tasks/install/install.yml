@@ -8,7 +8,7 @@
     version: "{{ home_assistant_version }}"
     virtualenv: "{{ home_assistant_user.home }}"
     extra_args: "{{ home_assistant_python_extra_args | default([]) |
-                      bodsch.core.python_extra_args(python_version=ansible_python.version, break_system_packages=False) | default(omit)
+                      bodsch.core.python_extra_args(python_version=ansible_facts.python.version, break_system_packages=False) | default(omit)
                  }}"
   when:
     - home_assistant_version is defined
@@ -21,7 +21,7 @@
     name: homeassistant
     virtualenv: "{{ home_assistant_user.home }}"
     extra_args: "{{ home_assistant_python_extra_args | default(['--upgrade']) |
-                      bodsch.core.python_extra_args(python_version=ansible_python.version, break_system_packages=False) | default(omit)
+                      bodsch.core.python_extra_args(python_version=ansible_facts.python.version, break_system_packages=False) | default(omit)
                 }}"
   when:
     - home_assistant_version is undefined
@@ -41,7 +41,7 @@
 
 - name: systemd
   when:
-    - ansible_service_mgr | lower == "systemd"
+    - ansible_facts.service_mgr | lower == "systemd"
   block:
     - name: create systemd service unit
       ansible.builtin.template:
@@ -67,7 +67,7 @@
 
 - name: openrc
   when:
-    - ansible_service_mgr | lower == "openrc"
+    - ansible_facts.service_mgr | lower == "openrc"
   block:
     - name: create openrc service configuration
       ansible.builtin.template:

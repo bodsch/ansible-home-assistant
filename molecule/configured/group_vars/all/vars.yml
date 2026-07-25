@@ -6,9 +6,28 @@ home_assistant_configuration:
   script: "!include scripts.yaml"
   scene: "!include scenes.yaml"
 
-home_assistant_automation: {}
-home_assistant_scenes: {}
+home_assistant_automation: []
+home_assistant_scenes: []
 home_assistant_scripts: {}
 home_assistant_secrets:
   some_password: welcome
+
+home_assistant_onboarding:
+  enabled: true
+  owner:
+    name: "Bodo"
+    username: "bodsch"
+    password: "{{ vault_ha_admin_password }}"
+    language: "de"
+  access_token:
+    enabled: true
+  location:
+    name: "Zuhause"
+    latitude: 53.54327
+    longitude: 10.09330
+    time_zone: "Europe/Berlin"
+    unit_system: metric
+    currency: "EUR"
+    country: "DE"
+
 ...
