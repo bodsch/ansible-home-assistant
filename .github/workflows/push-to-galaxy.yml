@@ -1,0 +1,40 @@
+---
+
+name: push to ansible galaxy
+
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - debug
+  workflow_run:
+    workflows:
+      - "CI"
+    branches:
+      - main
+    types:
+      - completed
+
+jobs:
+  galaxy:
+    name: galaxy
+    runs-on: ubuntu-22.04
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout the codebase
+        uses: actions/checkout@v6.0.2
+        with:
+          path: 'ansible-home-assistant'
+
+      - name: galaxy
+        uses: robertdebock/galaxy-action@1.2.1
+        with:
+          galaxy_api_key: ${{ secrets.galaxy_api_key }}
+          git_branch: main

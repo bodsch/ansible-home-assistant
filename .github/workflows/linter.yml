@@ -1,0 +1,125 @@
+---
+
+name: Code Linter
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        default: 'main'
+
+defaults:
+  run:
+    working-directory: 'ansible-home-assistant'
+
+jobs:
+  pycodestyle:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - name: Show trigger context
+        working-directory: .
+        run: |
+          echo "event: ${{ github.event_name }}"
+          echo "ref (raw): ${{ github.ref }}"
+          echo "ref_name: ${{ github.ref_name }}"
+          echo "manual input: ${{ github.event.inputs.ref }}"
+          echo "head_branch (for PR): ${{ github.head_ref }}"
+
+      - name: Determine ref to checkout
+        working-directory: .
+        id: get-ref
+        run: |
+          # Fallback-Logik für verschiedene Events
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.ref }}" ]; then
+            echo "ref=${{ github.event.inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout the codebase
+        uses: actions/checkout@v6.0.2
+        with:
+          path: 'ansible-home-assistant'
+          ref: ${{ steps.get-ref.outputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "${{ matrix.python_version }}"
+
+      - name: Install pycodestyle
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pycodestyle
+
+      - name: Run pycodestyle
+        run: |
+          pycodestyle . --config=.config/pycodestyle.cfg --statistics --count
+
+  flake8:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - name: Show trigger context
+        working-directory: .
+        run: |
+          echo "event: ${{ github.event_name }}"
+          echo "ref (raw): ${{ github.ref }}"
+          echo "ref_name: ${{ github.ref_name }}"
+          echo "manual input: ${{ github.event.inputs.ref }}"
+          echo "head_branch (for PR): ${{ github.head_ref }}"
+
+      - name: Determine ref to checkout
+        working-directory: .
+        id: get-ref
+        run: |
+          # Fallback-Logik für verschiedene Events
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.ref }}" ]; then
+            echo "ref=${{ github.event.inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout the codebase
+        uses: actions/checkout@v6.0.2
+        with:
+          path: 'ansible-home-assistant'
+          ref: ${{ steps.get-ref.outputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "${{ matrix.python_version }}"
+
+      - name: Install flake8
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install flake8
+
+      - name: Run flake8
+        run: |
+          flake8 --append-config=.config/pycodestyle.cfg --exclude=test_*.py,hooks/*.py
